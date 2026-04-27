@@ -13,3 +13,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+# Data files
+*.csv
+data/
+.env
+model.joblib
+model.joblib
+model.joblib
