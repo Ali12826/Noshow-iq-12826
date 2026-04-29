@@ -31,23 +31,22 @@ def test_health_returns_200():
 
 def test_health_returns_ok():
     response = client.get("/health")
-    data = response.json()
-    assert data["status"] == "ok"
+    assert response.json()["status"] == "ok"
 
 
+@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-@patch("noshow_iq.api.predict")
-def test_predict_returns_200(mock_predict, mock_col):
-    mock_predict.return_value = MOCK_PREDICTION
+def test_predict_returns_200(mock_col, mock_load):
+    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
     assert response.status_code == 200
 
 
+@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-@patch("noshow_iq.api.predict")
-def test_predict_returns_correct_fields(mock_predict, mock_col):
-    mock_predict.return_value = MOCK_PREDICTION
+def test_predict_returns_correct_fields(mock_col, mock_load):
+    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
     data = response.json()
@@ -56,24 +55,22 @@ def test_predict_returns_correct_fields(mock_predict, mock_col):
     assert "recommendation" in data
 
 
+@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-@patch("noshow_iq.api.predict")
-def test_predict_risk_level_valid(mock_predict, mock_col):
-    mock_predict.return_value = MOCK_PREDICTION
+def test_predict_risk_level_valid(mock_col, mock_load):
+    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
-    data = response.json()
-    assert data["risk_level"] in ["HIGH", "LOW"]
+    assert response.json()["risk_level"] in ["HIGH", "LOW"]
 
 
+@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-@patch("noshow_iq.api.predict")
-def test_predict_probability_range(mock_predict, mock_col):
-    mock_predict.return_value = MOCK_PREDICTION
+def test_predict_probability_range(mock_col, mock_load):
+    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
-    data = response.json()
-    assert 0.0 <= data["probability"] <= 1.0
+    assert 0.0 <= response.json()["probability"] <= 1.0
 
 
 def test_predict_invalid_input():
