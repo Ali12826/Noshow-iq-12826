@@ -17,7 +17,7 @@ SAMPLE_INPUT = {
     "appointment_weekday": 2
 }
 
-MOCK_PREDICTION = {
+MOCK_RESULT = {
     "risk_level": "HIGH",
     "probability": 0.82,
     "recommendation": "Call the patient to confirm."
@@ -34,19 +34,17 @@ def test_health_returns_ok():
     assert response.json()["status"] == "ok"
 
 
-@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-def test_predict_returns_200(mock_col, mock_load):
-    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
+@patch("noshow_iq.api.predict", return_value=MOCK_RESULT)
+def test_predict_returns_200(mock_predict, mock_col):
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
     assert response.status_code == 200
 
 
-@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-def test_predict_returns_correct_fields(mock_col, mock_load):
-    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
+@patch("noshow_iq.api.predict", return_value=MOCK_RESULT)
+def test_predict_returns_correct_fields(mock_predict, mock_col):
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
     data = response.json()
@@ -55,19 +53,17 @@ def test_predict_returns_correct_fields(mock_col, mock_load):
     assert "recommendation" in data
 
 
-@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-def test_predict_risk_level_valid(mock_col, mock_load):
-    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
+@patch("noshow_iq.api.predict", return_value=MOCK_RESULT)
+def test_predict_risk_level_valid(mock_predict, mock_col):
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
     assert response.json()["risk_level"] in ["HIGH", "LOW"]
 
 
-@patch("noshow_iq.model.load_model")
 @patch("noshow_iq.api.predictions_col")
-def test_predict_probability_range(mock_col, mock_load):
-    mock_load.return_value.predict_proba.return_value = [[0.18, 0.82]]
+@patch("noshow_iq.api.predict", return_value=MOCK_RESULT)
+def test_predict_probability_range(mock_predict, mock_col):
     mock_col.insert_one = MagicMock()
     response = client.post("/predict", json=SAMPLE_INPUT)
     assert 0.0 <= response.json()["probability"] <= 1.0
